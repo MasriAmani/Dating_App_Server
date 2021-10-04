@@ -19,15 +19,26 @@ Route::group([
 });
 
 
-Route::get('/editprofile', [UserController::class, 'eprofile'])->name('api:editprofile');
-Route::get('/editinterest', [UserController::class, 'einterest'])->name('api:editinterest');
-Route::get('/edithobbies', [UserController::class, 'ehobbies'])->name('api:edithobbies');
-Route::get('/editpictures', [UserController::class, 'epictures'])->name('api:editpictures');
-
-Route::get('/showfavorite', [UserController::class, 'showfavorite'])->name('api:showfavorite');
+Route::post('/editprofile', [UserController::class, 'editprofile'])->name('api:editprofile');
+Route::get('/allusers', [UserController::class, 'allusers'])->name('api:allusers');
+Route::get('/showfavorites', [UserController::class, 'showfavorites'])->name('api:showfavorite');
 Route::get('/showmatched', [UserController::class, 'showmatched'])->name('api:showmatched');
+Route::get('/showblocked', [UserController::class, 'showblocked'])->name('api:showblocked');
+Route::get('/notifs', [UserController::class, 'notifications'])->name('api:notifs');
+Route::get('/mypics', [UserController::class, 'mypictures'])->name('api:mypics');
+Route::get('/userpics', [UserController::class, 'userpictures'])->name('api:userpics');
+Route::get('/userprofile', [UserController::class, 'userprofile'])->name('api:userprofile');
+Route::get('/myprofile', [UserController::class, 'myprofile'])->name('api:myprofile');
+
 Route::get('/makefavorite', [UserController::class, 'makefavorite'])->name('api:makefavorite');
+Route::get('/block', [UserController::class, 'block'])->name('api: block');
+Route::get('/unblock', [UserController::class, 'unblock'])->name('api:unblock');
 
 
+//Route::get('/editinterest', [UserController::class, 'einterest'])->name('api:editinterest');
+//Route::get('/edithobbies', [UserController::class, 'ehobbies'])->name('api:edithobbies');
+//Route::get('/editpictures', [UserController::class, 'epictures'])->name('api:editpictures');
 
+
+?>
 

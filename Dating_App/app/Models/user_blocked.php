@@ -9,4 +9,8 @@ class user_blocked extends Model
 {
     use HasFactory;
     public $table ="user_blocked";
+    protected $fillable = [
+        'from_user_id',
+        'to_user_id',
+    ];
 }

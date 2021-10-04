@@ -13,64 +13,153 @@ use App\Models\user_notification;
 use App\Models\user_picture;
 use App\Models\user_type;
 use App\Models\user_favorite;
-
+use phpDocumentor\Reflection\Types\Null_;
 
 class UserController extends Controller{
 	
-	function index(){
-		//$user = User::find(1);
-		// echo $user->interests;
-		// foreach ($user->interests as $intr){
-		// 	echo($intr->name);
-
-         //$interest = user_interest::find(1);
-	     // echo $interest->name;
-		// echo $interest->user->first_name;
-
-		 //$user = user_type::find(2);
-		 // echo $user->user;
-
-		 // $user = User::find(1);
-	     //echo $user->type->name;
-
-		 // $user = User::find(1);
-		  // foreach ($user->connections as $connection){
-		//	echo($connection->first_name);
-		
-
-		 $user = User::find(2);
-		foreach ($user->messages as $msg){
-		  echo($msg);
+//returns all users that their gender is as the intrested_in gender of the current user 
+function allusers(){
+	$user = auth()->user();
+	$gender =$user->interested_in;
+	$users = User::where('gender',$gender)
+				   ->get()->toArray();
+	
+    return json_encode($users);
+	
+}
+function showfavorites(){
+	    $user = auth()->user();
+		$favs  = $user->favorites;
+		$i=0;
+		foreach ($favs as $fav ){
+			$favuser = User::find($fav->id);
+			$profile_pic = User::find($fav->id)->pictures
+			                       ->where('is_profile_picture',1)
+								   ->values();
+		    $favuser['pic_url']	= $profile_pic[0]->picture_url;			   
+		    $favusers[$i] = $favuser;
+			$i++;
 		}
-		
-		
-		
-	}
 
-	function showfavorite(){
-		$user = auth()->user();
-		return json_encode($user->favorites);
+	    return json_encode($favusers);
 
 }
 
 function showmatched(){
 	$user = auth()->user();
-	return json_encode($user->connections);
+	$matchs  = $user->connections;
+		$i=0;
+		foreach ($matchs as $match ){
+			$matchuser = User::find($match->id);
+			$profile_pic = User::find($match->id)->pictures
+			                       ->where('is_profile_picture',1)
+								   ->values();
+			$matchuser['pic_url']	= $profile_pic[0]->picture_url;			   
+		    $matchusers[$i] = $matchuser;
+			$i++;
+		}
+
+	    return json_encode($matchusers);
+}
+
+function showBlocked(){
+	$user = auth()->user();
+	$allblocked  = $user->blocked;
+		$i=0;
+		foreach ($allblocked as $blocked ){
+			$blockeduser = User::find($blocked->id);
+			$profile_pic = User::find($blocked->id)->pictures
+			                       ->where('is_profile_picture',1)
+								   ->values();
+			$blockeduser['pic_url']	= $profile_pic[0]->picture_url;			   
+		    $blockedusers[$i] = $blockeduser;
+			$i++;
+		}
+
+	    return json_encode($blockedusers);
 
 }
 
+function notifications(){
+	$user = auth()->user();
+	return json_encode($user->notifs);
+
+}
+//the current user can see all his pictures even the not approved yet
+function mypictures(){
+	$user = auth()->user();
+	return json_encode($user->pictures);
+}
+
+//displays the pictures of other user that are approved and not profile
+function userpictures(Request $request){
+	$approved_pics = User::find($request->id)->pictures
+	 										 ->where('is_profile_picture',0)
+	                                         ->where('is_approved',1)
+											 ->values();
+	return json_encode($approved_pics);
+}
 
 
-	function makefavorite(Request $request){
-		$user = auth()->user();
-        $fav = user_favorite::create([
-			'from_user_id' => $user->id,
+function myprofile(){
+	$user = auth()->user();
+	$profile_pic =User::find($user->id)->pictures
+	                     ->where('is_profile_picture',1)
+						 ->values();
+	$pic_url= $profile_pic[0]->picture_url;	
+	$user['pic_url'] = $pic_url;
+	return json_encode($user);
+	
+}
+
+function editprofile(Request $request){
+	$u = auth()->user();
+	$user = User::find($u->id);
+	$user->first_name = $request->first_name;
+	$user->last_name = $request->last_name;
+	$user->gender = $request->gender;
+	$user->interested_in = $request->interested_in;
+	$user->dob = $request->dob;
+	$user->height = $request->height;
+	$user->weight = $request->weight;
+	$user->nationality = $request->nationality;
+	$user->bio = $request->bio;
+
+	$user->save();
+	
+}
+
+function userprofile(Request $request){
+	$user = User::find($request->id);
+	$profile_pic =User::find($request->id)->pictures
+	                     ->where('is_profile_picture',1)
+						 ->values();
+	$pic_url= $profile_pic[0]->picture_url;	
+	$user['pic_url'] = $pic_url;
+	return json_encode($user);
+	
+}
+
+function makefavorite(Request $request){
+		$user = User::find(1);
+        user_favorite::create([
+			'from_user_id' =>$user->id,
 			'to_user_id' => $request->id,
 		]);
-		
+}
 
-
-
+function block(Request $request){
+		$user = auth()->user();
+		$block = user_blocked::create([
+		'from_user_id' => $user->id,
+		'to_user_id' => $request->id,
+			]);
+}
+function unblock(Request $request){
+	$user = auth()->user();
+	user_blocked::where('from_user_id', $user->id)
+                 ->where('to_user_id', $request->id)
+                 ->delete();
 }
 }
 
