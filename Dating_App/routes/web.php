@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\API\UserController;
+use App\Http\Controllers\AdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,5 +14,23 @@ use App\Http\Controllers\API\UserController;
 | contains the "web" middleware group. Now create something great!
 |
 */
-Route::get('/', [Controller::class, 'index'])->name('Home');
-Route::get('/page1', [UserController::class, 'index'])->name('page1');
+
+Route::group(['middleware' => ['guest']], function(){
+Route::get('/', [AdminController::class, "index"])->name("index");
+Route::get('/admin',[AdminController::class, "admin"])->name("admin");
+Route::any('/logout',[AdminController::class, "logout"])->name("adminlogout");
+Route::get('/adminmsgs', [AdminController::class, 'adminmsgs'])->name('adminmsgs');
+});
+
+Route::group(['middleware' => ['auth1']], function(){
+        Route::group(['middleware' => ['auth.admin']], function(){
+  
+        
+  });
+	
+  
+ 
+});
+?>
+
+	

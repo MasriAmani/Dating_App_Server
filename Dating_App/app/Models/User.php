@@ -69,9 +69,12 @@ public function messages()
      */
     protected $fillable = [
         'first_name',
+        'last_name',
         'email',
         'password',
-        'dob',
+       // 'dob',
+        'gender',
+        'interested_in'
 
     ];
 

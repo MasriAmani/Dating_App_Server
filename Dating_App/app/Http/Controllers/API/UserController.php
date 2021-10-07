@@ -1,6 +1,6 @@
 <?php
 namespace App\Http\Controllers\API;
-
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -18,12 +18,30 @@ use phpDocumentor\Reflection\Types\Null_;
 class UserController extends Controller{
 	
 //returns all users that their gender is as the intrested_in gender of the current user 
+//and they are not favorite or matched or blocked 
 function allusers(){
-	$user = auth()->user();
-	$gender =$user->interested_in;
+	$u =  auth()->user();
+	$gender =$u->interested_in;
+	$me  = ["0"=>$u->id];
+	$blocked  = $u->blocked->pluck('id')->toArray();
+	$matchs  = $u->connections->pluck('id')->toArray();
+	$favs  = $u->favorites->pluck('id')->toArray();
+
 	$users = User::where('gender',$gender)
+	               ->whereNotIn('id',$me)
+	               ->whereNotIn('id',$blocked)
+				   ->whereNotIn('id',$matchs)
+				   ->whereNotIn('id',$favs)
 				   ->get()->toArray();
-	
+	$i=0;
+	foreach($users as $user){
+		$profile_pic = User::find($user['id'])->pictures
+	                                    	->where('is_profile_picture',1)
+		                                    ->values();
+		$user["pic_url"] = $profile_pic[0]->picture_url;
+		$users[$i] =$user;
+        $i++;
+	}
     return json_encode($users);
 	
 }
@@ -141,11 +159,41 @@ function userprofile(Request $request){
 }
 
 function makefavorite(Request $request){
-		$user = User::find(1);
-        user_favorite::create([
-			'from_user_id' =>$user->id,
-			'to_user_id' => $request->id,
-		]);
+	   $user = auth()->user();
+       $favback = user_favorite::where('from_user_id',$request->id)
+		                              ->where('to_user_id',$user->id)
+									  ->get()->toArray();
+				
+		if(sizeof($favback) != 0){
+			
+			user_favorite::create([
+				'from_user_id' =>$user->id,
+				'to_user_id' => $request->id,
+			]);
+			user_connection::create([
+				'user1_id' =>$user->id,
+				'user2_id' => $request->id,
+			]);
+			user_notification::create([
+					'user_id' =>$request->id,
+					'body' => "You and ".$user->first_name." ".$user->last_name." are now matched",
+				]);
+			
+		}
+		else {
+
+            user_favorite::create([
+				'from_user_id' =>$user->id,
+				'to_user_id' => $request->id,
+			]);
+			user_notification::create([
+					'user_id' =>$request->id,
+					'body' => $user->first_name." ".$user->last_name." favorite you",
+				]);
+
+		}
+
+	
 }
 
 function block(Request $request){
